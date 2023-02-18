@@ -1,0 +1,21 @@
+﻿  main.cpp
+C:\development\SFML\main\main.cpp(29,29): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+C:\development\SFML\main\main.cpp(30,37): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+C:\development\SFML\main\main.cpp(42,38): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+C:\development\SFML\main\main.cpp(42,35): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+C:\development\SFML\main\main.cpp(46,35): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+C:\development\SFML\main\main.cpp(109,42): warning C4244: +=: преобразование "float" в "int", возможна потеря данных
+C:\development\SFML\main\main.cpp(111,42): warning C4244: -=: преобразование "float" в "int", возможна потеря данных
+C:\development\SFML\main\main.cpp(114,76): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+C:\development\SFML\main\main.cpp(114,60): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+C:\development\SFML\main\main.cpp(131,79): warning C4244: аргумент: преобразование "const T" в "int", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+C:\development\SFML\main\main.cpp(131,51): warning C4244: аргумент: преобразование "const T" в "int", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+  SFML.vcxproj -> C:\development\SFML\main\x64\Debug\SFML.exe

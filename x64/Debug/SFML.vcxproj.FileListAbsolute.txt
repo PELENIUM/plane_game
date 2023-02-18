@@ -1,0 +1,2 @@
+C:\development\SFML\x64\Debug\SFML.exe
+C:\development\SFML\main\x64\Debug\SFML.exe
