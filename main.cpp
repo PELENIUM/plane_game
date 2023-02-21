@@ -35,7 +35,7 @@ public:
     void rotate(int x) {
         sprite.setRotation(x);
     }
-    plane(String text, int x1, int y1) {
+    plane(String text, int x1 = 350, int y1 = 680) {
         texture.loadFromFile(text);
         sprite.setTexture(texture);
         x = x1;
@@ -47,11 +47,11 @@ int back_y = 0;
 Texture back, back2, t;
 Sprite back_spr, back_spr2;
 Font font;
-Text score("", font, 40), maxscore("", font, 40);
+Text score("", font, 50), maxscore("", font, 50);
 float main_timer = 0, dt = 0;
 bool allow = true;
 std::vector <RectangleShape> bullets;
-plane main_plane = plane("images/plane.png", 350, 680), enemy = plane("images/plane2.png", -100, -100);
+plane main_plane = plane("images/plane.png"), enemy = plane("images/plane2.png", -100, -100);
 
 void draw_back() {
     back.loadFromFile("images/back.png");
@@ -67,8 +67,6 @@ void draw_back() {
     back_y += 6;
 }
 
-
-
 bool collision(int x, int y, int e_x, int e_y, plane *enemy, bool bullet, RectangleShape *ptr = nullptr) {
     if (bullet) {
         if (((x >= e_x and x <= e_x + 100) and (y >= e_y and y <= e_y + 100)) or ((x + 5 >= e_x and x + 5 <= e_x + 100) and (y >= e_y and y < e_y + 100))) {
@@ -80,7 +78,8 @@ bool collision(int x, int y, int e_x, int e_y, plane *enemy, bool bullet, Rectan
         }
     }
     if (!bullet) {
-        if (((x >= e_x and x <= e_x + 100) and (y >= e_y and y <= e_y + 100)) or ((x + 100 >= e_x and x + 100 <= e_x + 100) and (y >= e_y and y < e_y + 100))) {
+        if (((x >= e_x and x <= e_x + 100) and (y >= e_y and y <= e_y + 100)) or ((x >= e_x and x <= e_x + 100) and (y + 100 >= e_y and y + 100 < e_y + 100))
+            or ((x + 100 >= e_x and x + 100 <= e_x + 100) and (y + 100 >= e_y and y + 100 <= e_y + 100)) or ((x + 100 >= e_x and x + 100 <= e_x + 100) and (y >= e_y and y < e_y + 100))) {
             enemy->x = -100;
             enemy->y = -100;
             death_counter++;
