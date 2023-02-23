@@ -11,6 +11,8 @@ int death_counter = 0;
 int counter = 0;
 int maxcounter = 0;
 
+int speed = 35;
+
 #define weight 800
 #define height 800
 
@@ -44,30 +46,44 @@ public:
 };
 
 int back_y = 0;
-Texture back, back2, t;
-Sprite back_spr, back_spr2;
+Texture back, back2, t, menu_text, how_text, end_text;
+Sprite back_spr, back_spr2, menu_spr, how_spr, end_spr;
 Font font;
 Text score("", font, 50), maxscore("", font, 50);
-float main_timer = 0, dt = 0;
-bool allow = true;
+float main_timer = 0, dt = 0, end_timer = 0;
+bool allow = true, is_stop = false, end = false;
 std::vector <RectangleShape> bullets;
 plane main_plane = plane("images/plane.png"), enemy = plane("images/plane2.png", -100, -100);
+float speed_timer = 0;
+bool btn1 = false, btn2 = false, fexit = false;
 
 void draw_back() {
-    back.loadFromFile("images/back.png");
-    back_spr.setTexture(back);
-    back2.loadFromFile("images/back.png");
-    back_spr2.setTexture(back2);
-    if (back_y >= 800)
-        back_y = 0;
-    back_spr.setPosition(0, back_y);
-    back_spr2.setPosition(0, back_y - height);
-    window.draw(back_spr);
-    window.draw(back_spr2);
-    back_y += 6;
+    if (!is_stop and !end) {
+        back.loadFromFile("images/back.png");
+        back_spr.setTexture(back);
+        back2.loadFromFile("images/back.png");
+        back_spr2.setTexture(back2);
+        if (back_y >= 800)
+            back_y = 0;
+        back_spr.setPosition(0, back_y);
+        back_spr2.setPosition(0, back_y - height);
+        window.draw(back_spr);
+        window.draw(back_spr2);
+        back_y += 6;
+    }
+    if (is_stop or end) {
+        back.loadFromFile("images/back.png");
+        back_spr.setTexture(back);
+        back2.loadFromFile("images/back.png");
+        back_spr2.setTexture(back2);
+        back_spr.setPosition(0, back_y);
+        back_spr2.setPosition(0, back_y - height);
+        window.draw(back_spr);
+        window.draw(back_spr2);
+    }
 }
 
-bool collision(int x, int y, int e_x, int e_y, plane *enemy, bool bullet, RectangleShape *ptr = nullptr) {
+bool collision(int x, int y, int e_x, int e_y, plane* enemy, bool bullet, RectangleShape* ptr = nullptr) {
     if (bullet) {
         if (((x >= e_x and x <= e_x + 100) and (y >= e_y and y <= e_y + 100)) or ((x + 5 >= e_x and x + 5 <= e_x + 100) and (y >= e_y and y < e_y + 100))) {
             enemy->x = -100;
@@ -83,36 +99,57 @@ bool collision(int x, int y, int e_x, int e_y, plane *enemy, bool bullet, Rectan
             enemy->x = -100;
             enemy->y = -100;
             death_counter++;
-            counter--;
+            if (counter > 0)
+                counter--;
             return true;
         }
     }
 }
 
-int main() {
+bool btn_check(int btnx, int btny, int mx, int my) {
+    if (((mx >= btnx and mx <= btnx + 200) and (my >= btny and my <= btny + 80)) or ((mx + 200 >= btnx and mx + 200 <= btnx + 200) and (my >= btny and my <= btny + 80)))
+        return true;
+}
+
+
+
+void game() {
+    window.setVerticalSyncEnabled(true);
+    menu_text.loadFromFile("images/menu.png");
+    menu_spr.setTexture(menu_text);
+    how_text.loadFromFile("images/how_to.png");
+    how_spr.setTexture(how_text);
+    end_text.loadFromFile("images/end.png");
+    end_spr.setTexture(end_text);
     Clock clock;
     font.loadFromFile("UF1.ttf");
     score.setStyle(Text::Bold);
     enemy.rotate(180);
     t.loadFromFile("images/bullet.png");
     while (window.isOpen()) {
+        window.setFramerateLimit(speed);
         bool flag = true;
         std::ifstream maxtxt("max.txt");
         maxtxt >> maxcounter;
-        float time = (float) clock.getElapsedTime().asMicroseconds() / 800;
+        float time = (float)clock.getElapsedTime().asMicroseconds() / 800;
         main_timer += time;
-        if (main_timer > 2000) {
+        speed_timer += time;
+        if (speed_timer >= 3000) {
+            speed += 8;
+            speed_timer = 0;
+        }
+        if (main_timer > 2000 and !is_stop and !end) {
             if (allow) {
                 enemy.x = rand() % 600 + 100;
                 enemy.y = rand() % 100;
                 allow = false;
             }
         }
-        if (enemy.y < 900) {
+        if (enemy.y < 900 and !is_stop and !end) {
             enemy.y += 8;
             collision(main_plane.x, main_plane.y, enemy.x - 100, enemy.y - 100, &enemy, false);
         }
-        if (enemy.y >= 900) {
+        if (enemy.y >= 900 and !is_stop and !end) {
             enemy.y = -100;
             enemy.x = -100;
             main_timer = 0;
@@ -121,36 +158,62 @@ int main() {
         dt += time;
         clock.restart();
         Event event;
-        while (window.pollEvent(event)) {            
-            if ((event.type == Event::Closed) or (event.key.code == Keyboard::Escape))
+        while (window.pollEvent(event)) {
+            if (event.type == Event::Closed)
                 window.close();
             if (event.type == Event::KeyPressed) {
-                if (event.key.code == Keyboard::D && main_plane.x + (time / 2) <= 670)
+                if (event.key.code == Keyboard::D && main_plane.x + (time / 2) <= 670 && !is_stop && !end)
                     main_plane.x += time / 2;
-                if (event.key.code == Keyboard::A && main_plane.x - (time / 2) >= 30)
+                if (event.key.code == Keyboard::A && main_plane.x - (time / 2) >= 30 && !is_stop && !end)
                     main_plane.x -= time / 2;
-                if (event.key.code == sf::Keyboard::Space and dt > 300) {
-                        RectangleShape *bullet = new RectangleShape(Vector2f(5, 25));
-                        (*bullet).setTexture(&t);
-                        (*bullet).setTextureRect(IntRect(0, 0, 5, 25));
-                        (*bullet).setPosition(main_plane.x + 45, main_plane.y);
-                        bullets.push_back(*bullet);
-                        dt = 0;
+                if (event.key.code == Keyboard::R) {
+                    main_plane.x = 350;
+                    main_plane.y = 680;
+                    end = false;
+                    counter = 0;
+                    death_counter = 0;
                 }
-                if (event.key.code == Keyboard::Escape)
-                    window.close();
+                if (event.key.code == sf::Keyboard::Space and dt > 300 && !is_stop) {
+                    RectangleShape* bullet = new RectangleShape(Vector2f(5, 25));
+                    (*bullet).setTexture(&t);
+                    (*bullet).setTextureRect(IntRect(0, 0, 5, 25));
+                    (*bullet).setPosition(main_plane.x + 45, main_plane.y);
+                    bullets.push_back(*bullet);
+                    dt = 0;
+                }
+                if (event.key.code == Keyboard::Escape) {
+                    is_stop = !is_stop;
+                    if (is_stop == false) {
+                        btn1 = false;
+                        btn2 = false;
+                    }
+                }
+            }
+            if (event.type == sf::Event::MouseButtonPressed) {
+                if (event.mouseButton.button == Mouse::Left) {
+                    Vector2i mouse_pos = Mouse::getPosition(window);
+                    Vector2f pos = window.mapPixelToCoords(mouse_pos);
+                    btn1 = btn_check(300, 260, pos.x, pos.y);
+                    btn2 = btn_check(300, 460, pos.x, pos.y);
+                }
             }
         }
-        window.clear( { 0, 0, 0 } );
+        window.clear({ 0, 0, 0 });
         draw_back();
         for (int i = 0; i < bullets.size(); i++) {
             if (bullets[i].getPosition().y < -60)
                 bullets.erase(bullets.begin() + i);
             else {
-                collision(bullets[i].getPosition().x, bullets[i].getPosition().y, enemy.x - 100, enemy.y - 100, &enemy, true, &bullets[i]);
+                if (!is_stop) {
+                    collision(bullets[i].getPosition().x, bullets[i].getPosition().y, enemy.x - 100, enemy.y - 100, &enemy, true, &bullets[i]);
+                    bullets[i].move(0, -10);
+                }
                 window.draw(bullets[i]);
-                bullets[i].move(0, -10);
             }
+        }
+        if (death_counter > 0) {
+            end = true;
+            end_timer += time;
         }
         collision(main_plane.x, main_plane.y, enemy.x - 100, enemy.y - 100, &enemy, false);
         enemy.draw_plane();
@@ -163,9 +226,18 @@ int main() {
         maxscore.setPosition(620, 730);
         maxscore.setFillColor(Color(254, 80, 190));
         window.draw(maxscore);
+        if (is_stop == true and btn1 != true and !end) {
+            window.draw(menu_spr);
+        }
+        if (is_stop == true and btn1 == true and !end) {
+            window.draw(how_spr);
+        }
+        if (end)
+            window.draw(end_spr);
         window.display();
-        if (death_counter > 2) {
+        if (btn2 == true) {
             window.close();
+            fexit = true;
         }
         std::ofstream maxtxt2;
         if (counter > maxcounter) {
@@ -175,5 +247,9 @@ int main() {
         maxtxt.close();
         maxtxt2.close();
     }
+}
+
+int main() {
+    game();
     return 0;
 }
