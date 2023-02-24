@@ -16,7 +16,7 @@ int speed = 35;
 #define weight 800
 #define height 800
 
-RenderWindow window(VideoMode(weight, height), "zxc");
+RenderWindow window(VideoMode(weight, height), "AIR KILLER");
 
 class plane {
 private:
@@ -50,11 +50,10 @@ Texture back, back2, t, menu_text, how_text, end_text;
 Sprite back_spr, back_spr2, menu_spr, how_spr, end_spr;
 Font font;
 Text score("", font, 50), maxscore("", font, 50);
-float main_timer = 0, dt = 0, end_timer = 0;
-bool allow = true, is_stop = false, end = false;
+float main_timer = 0, dt = 0, end_timer = 0, color_timer = 0, speed_timer = 0;
+bool allow = true, is_stop = false, end = false, change_color = false;
 std::vector <RectangleShape> bullets;
 plane main_plane = plane("images/plane.png"), enemy = plane("images/plane2.png", -100, -100);
-float speed_timer = 0;
 bool btn1 = false, btn2 = false, fexit = false;
 
 void draw_back() {
@@ -92,6 +91,8 @@ bool collision(int x, int y, int e_x, int e_y, plane* enemy, bool bullet, Rectan
             counter++;
             return true;
         }
+        else
+            return false;
     }
     if (!bullet) {
         if (((x >= e_x and x <= e_x + 100) and (y >= e_y and y <= e_y + 100)) or ((x >= e_x and x <= e_x + 100) and (y + 100 >= e_y and y + 100 < e_y + 100))
@@ -103,6 +104,8 @@ bool collision(int x, int y, int e_x, int e_y, plane* enemy, bool bullet, Rectan
                 counter--;
             return true;
         }
+        else
+            return false;
     }
 }
 
@@ -167,6 +170,10 @@ void game() {
                 if (event.key.code == Keyboard::A && main_plane.x - (time / 2) >= 30 && !is_stop && !end)
                     main_plane.x -= time / 2;
                 if (event.key.code == Keyboard::R) {
+                    enemy.x = -100;
+                    enemy.y = -100;
+                    main_timer = 0;
+                    bullets.clear();
                     main_plane.x = 350;
                     main_plane.y = 680;
                     end = false;
@@ -211,7 +218,7 @@ void game() {
                 window.draw(bullets[i]);
             }
         }
-        if (death_counter > 0) {
+        if (death_counter > 2) {
             end = true;
             end_timer += time;
         }
