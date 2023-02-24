@@ -18,4 +18,8 @@ sfml-system-2.dll
 sfml-window-2.dll 
 .vs 
 x64 
+msvcp140d 
 msvcp140d.dll 
+ucrtbased.dll 
+vcruntime140_1d.dll 
+vcruntime140d.dll 
