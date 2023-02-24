@@ -18,3 +18,4 @@ sfml-system-2.dll
 sfml-window-2.dll 
 .vs 
 x64 
+msvcp140d.dll 
