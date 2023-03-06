@@ -2,8 +2,6 @@
 
 ## __My first SFML game__
 
-#
-
 ## __Ideas for future:__
 
 1. Add skins
