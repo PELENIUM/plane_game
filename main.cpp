@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <iostream>
 #include <vector>
 #include <array>
@@ -50,11 +51,14 @@ Texture back, back2, t, menu_text, how_text, end_text;
 Sprite back_spr, back_spr2, menu_spr, how_spr, end_spr;
 Font font;
 Text score("", font, 50), maxscore("", font, 50);
-float main_timer = 0, dt = 0, end_timer = 0, color_timer = 0, speed_timer = 0;
+float main_timer = 0, dt = 0, color_timer = 0;
 bool allow = true, is_stop = false, end = false, change_color = false;
 std::vector <RectangleShape> bullets;
 plane main_plane = plane("images/plane.png"), enemy = plane("images/plane2.png", -100, -100);
+float speed_timer = 0;
 bool btn1 = false, btn2 = false, fexit = false;
+
+
 
 void draw_back() {
     if (!is_stop and !end) {
@@ -82,13 +86,14 @@ void draw_back() {
     }
 }
 
-bool collision(int x, int y, int e_x, int e_y, plane* enemy, bool bullet, RectangleShape* ptr = nullptr) {
+bool collision(int x, int y, int e_x, int e_y, plane* enemy, bool bullet, Sound *snd, RectangleShape* ptr = nullptr) {
     if (bullet) {
         if (((x >= e_x and x <= e_x + 100) and (y >= e_y and y <= e_y + 100)) or ((x + 5 >= e_x and x + 5 <= e_x + 100) and (y >= e_y and y < e_y + 100))) {
             enemy->x = -100;
             enemy->y = -100;
             (*ptr).setFillColor(Color::Transparent);
             counter++;
+            (*snd).play();
             return true;
         }
         else
@@ -102,6 +107,7 @@ bool collision(int x, int y, int e_x, int e_y, plane* enemy, bool bullet, Rectan
             death_counter++;
             if (counter > 0)
                 counter--;
+            (*snd).play();
             return true;
         }
         else
@@ -117,6 +123,23 @@ bool btn_check(int btnx, int btny, int mx, int my) {
 
 
 void game() {
+    SoundBuffer shoot_buf;
+    shoot_buf.loadFromFile("sounds/shoot.ogg");
+    Sound shoot(shoot_buf);
+    shoot.setVolume(30);
+    SoundBuffer colis_buf;
+    colis_buf.loadFromFile("sounds/collision.ogg");
+    Sound colis(colis_buf);
+    colis.setVolume(100);
+    SoundBuffer end_buf;
+    end_buf.loadFromFile("sounds/end.ogg");
+    Sound ends(end_buf);
+    ends.setVolume(100);
+    Music back_mus;
+    back_mus.openFromFile("sounds/back.ogg");
+    back_mus.setLoop(true);
+    back_mus.setVolume(50);
+    back_mus.play();
     window.setVerticalSyncEnabled(true);
     menu_text.loadFromFile("images/menu.png");
     menu_spr.setTexture(menu_text);
@@ -150,7 +173,7 @@ void game() {
         }
         if (enemy.y < 900 and !is_stop and !end) {
             enemy.y += 8;
-            collision(main_plane.x, main_plane.y, enemy.x - 100, enemy.y - 100, &enemy, false);
+            collision(main_plane.x, main_plane.y, enemy.x - 100, enemy.y - 100, &enemy, false, &colis);
         }
         if (enemy.y >= 900 and !is_stop and !end) {
             enemy.y = -100;
@@ -170,10 +193,7 @@ void game() {
                 if (event.key.code == Keyboard::A && main_plane.x - (time / 2) >= 30 && !is_stop && !end)
                     main_plane.x -= time / 2;
                 if (event.key.code == Keyboard::R) {
-                    enemy.x = -100;
-                    enemy.y = -100;
-                    main_timer = 0;
-                    bullets.clear();
+                    /*is_stop = false;*/
                     main_plane.x = 350;
                     main_plane.y = 680;
                     end = false;
@@ -181,6 +201,7 @@ void game() {
                     death_counter = 0;
                 }
                 if (event.key.code == sf::Keyboard::Space and dt > 300 && !is_stop) {
+                    shoot.play();
                     RectangleShape* bullet = new RectangleShape(Vector2f(5, 25));
                     (*bullet).setTexture(&t);
                     (*bullet).setTextureRect(IntRect(0, 0, 5, 25));
@@ -212,7 +233,7 @@ void game() {
                 bullets.erase(bullets.begin() + i);
             else {
                 if (!is_stop) {
-                    collision(bullets[i].getPosition().x, bullets[i].getPosition().y, enemy.x - 100, enemy.y - 100, &enemy, true, &bullets[i]);
+                    collision(bullets[i].getPosition().x, bullets[i].getPosition().y, enemy.x - 100, enemy.y - 100, &enemy, true, &colis, &bullets[i]);
                     bullets[i].move(0, -10);
                 }
                 window.draw(bullets[i]);
@@ -220,9 +241,9 @@ void game() {
         }
         if (death_counter > 2) {
             end = true;
-            end_timer += time;
+            ends.play();
         }
-        collision(main_plane.x, main_plane.y, enemy.x - 100, enemy.y - 100, &enemy, false);
+        collision(main_plane.x, main_plane.y, enemy.x - 100, enemy.y - 100, &enemy, false, &colis);
         enemy.draw_plane();
         main_plane.draw_plane();
         score.setString(std::to_string(counter));
@@ -239,8 +260,10 @@ void game() {
         if (is_stop == true and btn1 == true and !end) {
             window.draw(how_spr);
         }
-        if (end)
+        if (end) {
             window.draw(end_spr);
+            ends.play();
+        }
         window.display();
         if (btn2 == true) {
             window.close();
